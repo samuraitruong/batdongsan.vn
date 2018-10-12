@@ -112,6 +112,13 @@ async function fetchAllPages() {
     return results;
 }
 
+
+/* MAIN FUNCTION*/
+if (!fs.pathExistsSync("../data")) {
+    fs.mkdirpSync("../data");
+    fs.mkdirpSync("../data/pages");
+}
+
 fetchAllPages().then(x => console.log("Done"))
 
 
