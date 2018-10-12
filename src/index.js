@@ -34,6 +34,35 @@ async function getList(url) {
     listPage = listPage.concat(data)
     return data;
 }
+async function fetch1Page(url) {
+    console.log("getting content from ", url)
+    const html = await getHtml(url);
+    const $ = cheerio.load(html);
+    const details = $(".details-warp-item");
+    const props = {};
+    details.each((index, el) => {
+        props[$("label", el).text().trim()] = $("span", el).text().trim()
+    })
+    const attributes = $(".attribute li");
+    attributes.each((index, el) => {
+        props[$(".attributename", el).text().trim()] = $(".attributevalue", el).text().trim()
+    })
+    return {
+        title: $(".P_Title1").text().trim(),
+        price: $(".Price").text().trim(),
+        area: $(".Area").text().trim(),
+        address: $(".Addrees").text().trim(),
+        date: $(".PostDate").text().trim(),
+        content: $(".PD_Gioithieu").text().trim(),
+        props,
+        contact: {
+            name: $($(".P_Items_Lienhe .name a")[0]).text().trim(),
+            email: $($(".P_Items_Lienhe .email")[0]).text().trim(),
+            phone: $($(".P_Items_Lienhe .phone")[0]).text().trim(),
+        }
+    }
+
+}
 async function fetchAllPages() {
     const pages = [];
     limit = promiseLimit(2)
@@ -53,4 +82,7 @@ async function fetchAllPages() {
     return results;
 }
 
-fetchAllPages().then(x => console.log("Done"))
+//fetchAllPages().then(x => console.log("Done"))
+
+
+fetch1Page("http://www.batdongsan.vn/ban-khach-san-3-sao-pho-hang-hanh-hoan-kiem-ha-noi-1895m2-no-hau-p240462.html").then(x => console.log(x));
