@@ -10,17 +10,27 @@ const LIST_THREADS = 5;
 const PAGE_THREADS = 5;
 let listPage = [];
 
-// let resetCount = 0;
-async function getHtml(url) {
-    // if (resetCount++ % 15 == 0) {
-    //     await axios.get("http://www.batdongsan.vn/default.aspx?removedos=true")
-    // }
-    let response = await axios.get(url);
-    if (response.data.index("http://www.batdongsan.vn/default.aspx?removedos=true") > 0) {
-        await axios.get("http://www.batdongsan.vn/default.aspx?removedos=true")
-        response = await axios.get(url);
-    };
-    return response.data;
+let resetCount = 1;
+async function getHtml(url, retry) {
+    retry = retry || 0;
+    try {
+        if (resetCount++ % 15 == 0) {
+            await axios.get("http://www.batdongsan.vn/default.aspx?removedos=true")
+        }
+        let response = await axios.get(url);
+        return response.data;
+    } catch (err) {
+        console.log("error", err)
+        if (retry < 3) 
+            return await getHtml(url, retry + 1);
+        throw err;
+    }
+    // if
+    // (response.data.index("http://www.batdongsan.vn/default.aspx?removedos=true")
+    // > 0) {     await
+    // axios.get("http://www.batdongsan.vn/default.aspx?removedos=true") response =
+    // await axios.get(url); };
+
 }
 
 async function getList(url) {
@@ -32,14 +42,32 @@ async function getList(url) {
     list.each((index, el) => {
         const div = cheerio(".al_author_tool", el);
         data.push({
-            title: cheerio("h2", el).text().trim(),
+            title: cheerio("h2", el)
+                .text()
+                .trim(),
             link: "http://www.batdongsan.vn" + cheerio("h2 a", el).attr("href"),
-            content: cheerio("h3", el).text().trim(),
-            price: cheerio(".button-price", el).text().trim(),
-            author: div.find("a").text().trim(),
-            date: div.find(".fa-clock-o").parent().text().trim(),
-            area: cheerio(".product-area", el).text().trim(),
-            location: cheerio("product-area", el).next().text().trim()
+            content: cheerio("h3", el)
+                .text()
+                .trim(),
+            price: cheerio(".button-price", el)
+                .text()
+                .trim(),
+            author: div
+                .find("a")
+                .text()
+                .trim(),
+            date: div
+                .find(".fa-clock-o")
+                .parent()
+                .text()
+                .trim(),
+            area: cheerio(".product-area", el)
+                .text()
+                .trim(),
+            location: cheerio("product-area", el)
+                .next()
+                .text()
+                .trim()
         })
     })
     listPage = listPage.concat(data)
@@ -57,11 +85,23 @@ async function fetch1Page(url) {
         const details = $(".details-warp-item");
         const props = {};
         details.each((index, el) => {
-            props[$("label", el).text().trim()] = $("span", el).text().trim()
+            props[
+                $("label", el)
+                    .text()
+                    .trim()
+            ] = $("span", el)
+                .text()
+                .trim()
         })
         const attributes = $(".attribute li");
         attributes.each((index, el) => {
-            props[$(".attributename", el).text().trim()] = $(".attributevalue", el).text().trim()
+            props[
+                $(".attributename", el)
+                    .text()
+                    .trim()
+            ] = $(".attributevalue", el)
+                .text()
+                .trim()
         })
         const images = [];
         const imageEls = $(".box-banner-img a");
@@ -70,25 +110,42 @@ async function fetch1Page(url) {
             images.push(imageUrl);
         })
         const page = {
-            title: $(".P_Title1").text().trim(),
-            price: $(".Price").text().trim(),
-            area: $(".Area").text().trim(),
-            address: $(".Addrees").text().trim(),
-            date: $(".PostDate").text().trim(),
-            content: $(".PD_Gioithieu").text().trim(),
+            title: $(".P_Title1")
+                .text()
+                .trim(),
+            price: $(".Price")
+                .text()
+                .trim(),
+            area: $(".Area")
+                .text()
+                .trim(),
+            address: $(".Addrees")
+                .text()
+                .trim(),
+            date: $(".PostDate")
+                .text()
+                .trim(),
+            content: $(".PD_Gioithieu")
+                .text()
+                .trim(),
             props,
             contact: {
-                name: $($(".P_Items_Lienhe .name a")[0]).text().trim(),
-                email: $($(".P_Items_Lienhe .email")[0]).text().trim(),
-                phone: $($(".P_Items_Lienhe .phone")[0]).text().trim(),
+                name: $($(".P_Items_Lienhe .name a")[0])
+                    .text()
+                    .trim(),
+                email: $($(".P_Items_Lienhe .email")[0])
+                    .text()
+                    .trim(),
+                phone: $($(".P_Items_Lienhe .phone")[0])
+                    .text()
+                    .trim()
             },
             images
         }
-        fs.writeJSONSync(path.join(__dirname, "../data/pages", path.basename(url) + ".json"), page, {
-            spaces: 4
-        })
+        fs.writeJSONSync(path.join(__dirname, "../data/pages", path.basename(url) + ".json"), page, {spaces: 4})
         return page;
     } catch (err) {
+        console.log(err)
         console.log(chalk.red("Failed to get page content: " + url))
     }
 
@@ -105,21 +162,20 @@ async function fetchAllPages() {
     }))
     //console.log('results:', results)
     console.log("total page found: ", listPage.length);
-    fs.writeJSONSync(path.join(__dirname, "../data/list.json"), listPage, {
-        spaces: 4
-    });
+    fs.writeJSONSync(path.join(__dirname, "../data/list.json"), listPage, {spaces: 4});
     //const html = await getList(HOME_URL);
     return results;
 }
 
-
 /* MAIN FUNCTION*/
 if (!fs.pathExistsSync("../data")) {
     fs.mkdirpSync("../data");
+}
+if (!fs.pathExistsSync("../data/pages")) {
     fs.mkdirpSync("../data/pages");
 }
 
-fetchAllPages().then(x => console.log("Done"))
+// fetchAllPages().then(x => console.log("Done"))
 
-
-//fetch1Page("http://www.batdongsan.vn/ban-khach-san-3-sao-pho-hang-hanh-hoan-kiem-ha-noi-1895m2-no-hau-p240462.html").then(x => console.log(x));
+fetch1Page("http://www.batdongsan.vn/ban-sieu-biet-thu-imperia-garden-5t-co-ham-ck-5-dau-tu-" +
+        "sinh-loi-0943563151-p246367.html").then(x => console.log(x));
