@@ -32,14 +32,32 @@ async function getList(url) {
     list.each((index, el) => {
         const div = cheerio(".al_author_tool", el);
         data.push({
-            title: cheerio("h2", el).text().trim(),
+            title: cheerio("h2", el)
+                .text()
+                .trim(),
             link: "http://www.batdongsan.vn" + cheerio("h2 a", el).attr("href"),
-            content: cheerio("h3", el).text().trim(),
-            price: cheerio(".button-price", el).text().trim(),
-            author: div.find("a").text().trim(),
-            date: div.find(".fa-clock-o").parent().text().trim(),
-            area: cheerio(".product-area", el).text().trim(),
-            location: cheerio("product-area", el).next().text().trim()
+            content: cheerio("h3", el)
+                .text()
+                .trim(),
+            price: cheerio(".button-price", el)
+                .text()
+                .trim(),
+            author: div
+                .find("a")
+                .text()
+                .trim(),
+            date: div
+                .find(".fa-clock-o")
+                .parent()
+                .text()
+                .trim(),
+            area: cheerio(".product-area", el)
+                .text()
+                .trim(),
+            location: cheerio("product-area", el)
+                .next()
+                .text()
+                .trim()
         })
     })
     //console.log(url, data.length)
@@ -58,11 +76,23 @@ async function fetch1Page(url) {
         const details = $(".details-warp-item");
         const props = {};
         details.each((index, el) => {
-            props[$("label", el).text().trim()] = $("span", el).text().trim()
+            props[
+                    $("label", el)
+                    .text()
+                    .trim()
+                ] = $("span", el)
+                .text()
+                .trim()
         })
         const attributes = $(".attribute li");
         attributes.each((index, el) => {
-            props[$(".attributename", el).text().trim()] = $(".attributevalue", el).text().trim()
+            props[
+                    $(".attributename", el)
+                    .text()
+                    .trim()
+                ] = $(".attributevalue", el)
+                .text()
+                .trim()
         })
         const images = [];
         const imageEls = $(".box-banner-img a");
@@ -71,17 +101,35 @@ async function fetch1Page(url) {
             images.push(imageUrl);
         })
         const page = {
-            title: $(".P_Title1").text().trim(),
-            price: $(".Price").text().trim(),
-            area: $(".Area").text().trim(),
-            address: $(".Addrees").text().trim(),
-            date: $(".PostDate").text().trim(),
-            content: $(".PD_Gioithieu").text().trim(),
+            title: $(".P_Title1")
+                .text()
+                .trim(),
+            price: $(".Price")
+                .text()
+                .trim(),
+            area: $(".Area")
+                .text()
+                .trim(),
+            address: $(".Addrees")
+                .text()
+                .trim(),
+            date: $(".PostDate")
+                .text()
+                .trim(),
+            content: $(".PD_Gioithieu")
+                .text()
+                .trim(),
             props,
             contact: {
-                name: $($(".P_Items_Lienhe .name a")[0]).text().trim(),
-                email: $($(".P_Items_Lienhe .email")[0]).text().trim(),
-                phone: $($(".P_Items_Lienhe .phone")[0]).text().trim(),
+                name: $($(".P_Items_Lienhe .name a")[0])
+                    .text()
+                    .trim(),
+                email: $($(".P_Items_Lienhe .email")[0])
+                    .text()
+                    .trim(),
+                phone: $($(".P_Items_Lienhe .phone")[0])
+                    .text()
+                    .trim()
             },
             images
         }
@@ -90,6 +138,7 @@ async function fetch1Page(url) {
         })
         return page;
     } catch (err) {
+        console.log(err)
         console.log(chalk.red("Failed to get page content: " + url))
     }
 
@@ -113,14 +162,14 @@ async function fetchAllPages() {
     return results;
 }
 
-
 /* MAIN FUNCTION*/
 if (!fs.pathExistsSync("../data")) {
     fs.mkdirpSync("../data");
+}
+if (!fs.pathExistsSync("../data/pages")) {
     fs.mkdirpSync("../data/pages");
 }
 
 fetchAllPages().then(x => console.log("Done"))
 
-
-//fetch1Page("http://www.batdongsan.vn/ban-khach-san-3-sao-pho-hang-hanh-hoan-kiem-ha-noi-1895m2-no-hau-p240462.html").then(x => console.log(x));
+//fetch1Page("http://www.batdongsan.vn/chinh-chu-can-ban-lo-dat-mt-hem-xe-hoi-16m-nguyen-bieu-q5-2ty180-68m2-p271593.html").then(x => console.log(x));
