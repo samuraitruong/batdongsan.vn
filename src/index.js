@@ -16,7 +16,7 @@ async function getHtml(url) {
     //     await axios.get("http://www.batdongsan.vn/default.aspx?removedos=true")
     // }
     let response = await axios.get(url);
-    if (response.data.index("http://www.batdongsan.vn/default.aspx?removedos=true") > 0) {
+    if (response.data.indexOf("http://www.batdongsan.vn/default.aspx?removedos=true") > 0) {
         await axios.get("http://www.batdongsan.vn/default.aspx?removedos=true")
         response = await axios.get(url);
     };
@@ -42,6 +42,7 @@ async function getList(url) {
             location: cheerio("product-area", el).next().text().trim()
         })
     })
+    //console.log(url, data.length)
     listPage = listPage.concat(data)
     const pageLimit = promiseLimit(PAGE_THREADS);
     const results = await Promise.all(data.map((item) => {
